@@ -2,6 +2,22 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import Providers from "@/lib/providers"
 import { store } from "@/lib/store";
+import { Playfair_Display, Inter } from 'next/font/google';
+
+// Configure fonts
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body>
         <Providers store={store}>
           {children}
