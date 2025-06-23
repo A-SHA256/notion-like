@@ -5,8 +5,13 @@ export type Note = {
     updatedAt: string;
 }
 
+export type FormData = {
+  email: string;
+  password: string;
+};
 export interface AuthState {
-  user: null | { uid: string; email: string | null };
+  user: null | { uid: string; email: string | null; name?: string | null };
   loading: boolean;
-  error?: string | null;
+  error: string | null;
+  isAuthenticated: boolean;
 }

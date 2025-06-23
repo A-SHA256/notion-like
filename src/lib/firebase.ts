@@ -1,6 +1,7 @@
 
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,5 +14,7 @@ const firebaseConfig = {
 
 // Initialize only once (important for Next.js hot reloads)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+export const auth = getAuth();
 
 export default app;

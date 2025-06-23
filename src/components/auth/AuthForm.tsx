@@ -2,13 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-
-type FormData = {
-  email: string;
-  password: string;
-};
+import type { FormData } from '@/types';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { loginUser, signUpUser } from '@/slices/authSlice';
 
 export default function AuthForm() {
+  const {loading, error} = useAppSelector(state => state.auth)
   const {
     register,
     handleSubmit,
@@ -16,9 +15,25 @@ export default function AuthForm() {
   } = useForm<FormData>();
 
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
 
-  const onSubmit = (data: FormData) => {
-    console.log(data); // Send to API or handle logic
+  const onSubmit = async ({ email, password }: FormData) => {
+    try {
+      let userCred;
+      if (pathname === '/auth/sign-up') {
+        userCred = await dispatch(signUpUser({ email, password }));
+        console.log('User created:', userCred.payload);
+      } else {
+        userCred = await dispatch(loginUser({ email, password }));
+        console.log('User logged in:', userCred.payload);
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error('An unexpected error occurred');
+      }
+    }
   };
 
   return (
@@ -63,12 +78,17 @@ export default function AuthForm() {
         </div>
 
         <button
+          disabled={loading}
           type="submit"
-          className="w-full bg-green-800 text-white py-2 rounded hover:bg-green-900 transition"
+          className={`w-full py-2 rounded transition ${loading
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-green-800 text-white hover:bg-green-900'
+            }`}
         >
-          {pathname === '/auth/sign-in' ? 'Sign In' : 'Sign Up'}
+          {loading ? 'Loading...' : pathname === '/auth/sign-in' ? 'Sign In' : 'Sign Up'}
         </button>
       </form>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
     </div>
   );
 }
