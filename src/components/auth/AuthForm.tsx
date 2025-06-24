@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import type { FormData } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { loginUser, signUpUser } from '@/slices/authSlice';
+import { useRouter } from 'next/navigation';
+import  GitHubAuth from './GitHubAuth'
 
 export default function AuthForm() {
   const {loading, error} = useAppSelector(state => state.auth)
@@ -16,8 +18,10 @@ export default function AuthForm() {
 
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const onSubmit = async ({ email, password }: FormData) => {
+    console.log('Form submitted:', { email, password})
     try {
       let userCred;
       if (pathname === '/auth/sign-up') {
@@ -26,6 +30,10 @@ export default function AuthForm() {
       } else {
         userCred = await dispatch(loginUser({ email, password }));
         console.log('User logged in:', userCred.payload);
+      }
+      if (userCred.meta.requestStatus === 'fulfilled') {
+        console.log('Operation successful:', userCred.payload);
+        router.push('/notes')
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -87,6 +95,7 @@ export default function AuthForm() {
         >
           {loading ? 'Loading...' : pathname === '/auth/sign-in' ? 'Sign In' : 'Sign Up'}
         </button>
+        <GitHubAuth />
       </form>
       {error && <p className="text-red-600 mt-2">{error}</p>}
     </div>
