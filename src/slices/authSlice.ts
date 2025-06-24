@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GithubAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import type { AuthState } from '../types/index'
 
@@ -32,13 +32,32 @@ export const loginUser = createAsyncThunk(
                 name: userCredential.user.displayName,
                 email: userCredential.user.email
             }
-        } catch (err: unknown) {
-            let errorMessage = 'An unexpected error occurred';
-            if (err instanceof Error) {
-                errorMessage = err.message;
+        } catch (error) {
+            if (error instanceof Error) {
+                return thunkAPI.rejectWithValue(error.message);
             }
-            console.error(errorMessage);
-            return thunkAPI.rejectWithValue(errorMessage);
+            return thunkAPI.rejectWithValue('Unknown error');
+        }
+    }
+)
+
+export const logInWithGithub = createAsyncThunk(
+    'auth/logInWithGithub',
+    async (_, thunkAPI) => {
+        const provider = await new GithubAuthProvider();
+        try {
+            const userCredential = await signInWithPopup(auth, provider);
+            return {
+                uid: userCredential.user.uid,
+                name: userCredential.user.displayName,
+                email: userCredential.user.email
+            }
+
+        } catch (error) {
+            if (error instanceof Error) {
+                return thunkAPI.rejectWithValue(error.message);
+            }
+            return thunkAPI.rejectWithValue('Unknown error');
         }
     }
 )
@@ -48,6 +67,7 @@ const initialState: AuthState = {
     loading: false,
     error: null,
     isAuthenticated: false,
+    isInitialized: false,
 }
 
 const authSLice = createSlice({
@@ -57,6 +77,15 @@ const authSLice = createSlice({
         logout: (state) => {
             state.isAuthenticated = false;
             state.user = null;
+        },
+        setUser: (state, action) => {
+            state.user = action.payload;
+            state.isAuthenticated = true;
+            state.loading = false;
+            state.error = null;
+        },
+        setInitialized: (state, action) => {
+            state.isInitialized = action.payload;
         }
     },
     extraReducers: (builder) => {
@@ -74,7 +103,7 @@ const authSLice = createSlice({
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string;
+                state.error = action.payload as string || 'Sign in failed';
             })
             // sign up cases
             .addCase(signUpUser.pending, (state) => {
@@ -90,8 +119,23 @@ const authSLice = createSlice({
             .addCase(signUpUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string || 'Sign up failed';
+            })
+            .addCase(logInWithGithub.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(logInWithGithub.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+                state.isAuthenticated = true;
+                state.user = action.payload;
+            })
+            .addCase(logInWithGithub.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || 'Sign in with GitHub failed';
             });
     },
 })
 
 export default authSLice.reducer;
+export const { logout, setUser, setInitialized } = authSLice.actions;

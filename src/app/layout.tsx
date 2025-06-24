@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
-import Providers from "@/lib/providers"
+import Providers from "@/app/providers"
 import { store } from "@/lib/store";
 import { Playfair_Display, Inter } from 'next/font/google';
 
