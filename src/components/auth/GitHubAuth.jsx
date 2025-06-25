@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { logInWithGitHub } from "@/slices/authSlice";
+import { logInWithGithub } from "@/slices/authSlice";
 import { useRouter } from "next/navigation";
 
 export default function GitHubAuth() {
@@ -7,9 +7,12 @@ export default function GitHubAuth() {
   const router = useRouter();
   const { loading } = useAppSelector((state) => state.auth);
   const handleGitHubLogin = async () => {
-    const res = await dispatch(logInWithGitHub());
+    const res = await dispatch(logInWithGithub());
+    console.log(res);
     if (res.meta.requestStatus === "fulfilled") {
       router.push("/notes");
+    } else {
+      console.error("Github login failed:", res.error.message)
     }
   };
   return (
