@@ -1,27 +1,37 @@
 'use client';
 
-import LogoutBtn from "@/components/notes/LogoutBtn";
 import { useAppSelector } from "@/lib/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Header from "@/components/notes/Header";
+import Sidebar from "@/components/notes/Sidebar";
 
 export default function NotesPage() {
     const router = useRouter();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const { user, isInitialized } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
         if (isInitialized && !user) {
-            console.log('User is not authenticated. Redirecting to sign-in page...');
             router.push('/auth/sign-in');
         }
-    }, [user, router, isInitialized])
+    }, [user, router, isInitialized]);
 
     if (!user) return null;
 
     return (
-        <div>
-            Notes Page {user?.uid}
-            <LogoutBtn />
+        <div className="flex min-h-screen">
+            {/* Sidebar */}
+            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col">
+                <Header email={user.email} setSidebarOpen={setSidebarOpen} />
+
+                <main className="p-6">
+                    <h1 className="text-2xl font-semibold mb-4">Welcome to Notes</h1>
+                    {/* Add main content here */}
+                </main>
+            </div>
         </div>
     );
 }
