@@ -1,11 +1,14 @@
 'use client';
+import { addNote } from "@/slices/notesSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { useState } from "react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean, setSidebarOpen: (arg: boolean) => void }) {
-    const [sidebarItems, setSidebarItems] = useState<{ id: string, name: string }[]>([]);
     const [value, setValue] = useState<string>('');
     const [newNoteName, setNewNoteName] = useState<boolean>(false);
-
+    const { user } = useAppSelector(state => state.auth);
+    const { notes } = useAppSelector(state => state.notes);
+    const dispatch = useAppDispatch();
     return (
         <div
             className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
@@ -28,20 +31,28 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
                     <div className="flex items-center space-x-2">
                         <input type="text" placeholder="Enter a note name" value={value} className="flex" onChange={(e) => setValue(e.target.value)} onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                             if (e.key === 'Enter' && value.trim()) {
-                                setSidebarItems(prev => [...prev, { id: Date.now().toString(), name: value.trim() }]);
+                                const userNote = {
+                                    id: `${user?.uid}-${Date.now()}`,
+                                    name: value.trim(),
+                                    content: '',
+                                    createdAt: new Date().toISOString(),
+                                    updatedAt: new Date().toISOString(),
+                                };                                // setSidebarItems(prev => [...prev, userNote]);
+                                dispatch(addNote(userNote));
                                 e.currentTarget.value = '';
+                                setValue('');
                                 setNewNoteName(false);
+
                             }
                         }} />
                     </div>
                 )}
                 {/* Add more sidebar items here */}
-                {sidebarItems.length && (
+                {notes.allIds.length > 0 && (
                     <ul>
-                        {sidebarItems.map((item, index) => (
-                        <li key={index}>{item.name}</li>
-                        )
-                    )}
+                        {notes.allIds.map(id => (
+                            <li key={id}>{notes.byId[id].name}</li>
+                        ))}
                     </ul>
                 )}
             </div>
