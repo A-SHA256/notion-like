@@ -1,7 +1,8 @@
 'use client';
-import { addNote } from "@/slices/notesSlice";
+import { loadNotesFromLocalStorage, addNote, selectNote } from "@/slices/notesSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+// import type { Note } from "@/types/index";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean, setSidebarOpen: (arg: boolean) => void }) {
     const [value, setValue] = useState<string>('');
@@ -9,6 +10,25 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
     const { user } = useAppSelector(state => state.auth);
     const { notes } = useAppSelector(state => state.notes);
     const dispatch = useAppDispatch();
+    const [notesLoadedFromStorage, setNotesLoadedFromStorage] = useState<boolean>(false);
+    
+    useEffect(() => {
+        const storedNotes = localStorage.getItem(`${user?.uid}-notes`);
+        if (storedNotes) {
+            const parsedNotes = JSON.parse(storedNotes);
+            if (parsedNotes?.byId && parsedNotes?.allIds) {
+                dispatch(loadNotesFromLocalStorage(parsedNotes));
+            }
+            setNotesLoadedFromStorage(true);
+        }
+    }, [dispatch, user?.uid]);
+
+    useEffect(() => {
+        if (user?.uid && notesLoadedFromStorage) {
+            localStorage.setItem(`${user.uid}-notes`, JSON.stringify(notes));
+        }
+    }, [notes, user?.uid, notesLoadedFromStorage]);
+
     return (
         <div
             className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
@@ -37,12 +57,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
                                     content: '',
                                     createdAt: new Date().toISOString(),
                                     updatedAt: new Date().toISOString(),
-                                };                                // setSidebarItems(prev => [...prev, userNote]);
+                                };
                                 dispatch(addNote(userNote));
-                                e.currentTarget.value = '';
+                                dispatch(selectNote(userNote.id));
                                 setValue('');
                                 setNewNoteName(false);
-
                             }
                         }} />
                     </div>

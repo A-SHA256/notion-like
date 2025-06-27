@@ -23,6 +23,10 @@ const noteSlice = createSlice({
     name: 'notes',
     initialState,
     reducers: {
+        loadNotesFromLocalStorage: (state, action: PayloadAction<{ byId: Record<string, Note>, allIds: string[] }>) => {
+            state.notes.byId = action.payload.byId;
+            state.notes.allIds = action.payload.allIds;
+        },
         addNote: (state, action: PayloadAction<Note>) => {
             const note = action.payload;
             state.notes.byId[note.id] = note;
@@ -51,5 +55,5 @@ const noteSlice = createSlice({
         }
     }
 })
-export const { addNote, updateNote, removeNote, selectNote } = noteSlice.actions
+export const { addNote, updateNote, removeNote, selectNote, loadNotesFromLocalStorage } = noteSlice.actions
 export default noteSlice.reducer;

@@ -120,6 +120,7 @@ const authSLice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string || 'Sign up failed';
             })
+            // GitHub login cases
             .addCase(logInWithGithub.pending, (state) => {
                 state.loading = true;
                 state.error = null;

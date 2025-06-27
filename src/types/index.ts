@@ -10,7 +10,7 @@ export type FormData = {
   email: string;
   password: string;
 };
-export interface AuthState {
+export type AuthState  = {
   user: null | { uid: string; email: string | null; name?: string | null };
   loading: boolean;
   error: string | null;
