@@ -1,15 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Note } from '../types/index';
+import { Note, NotesState } from '../types/index';
 
-interface NotesState {
-    notes: {
-        byId: Record<string, Note>;
-        allIds: string[];
-        selectedNoteId: string | null;
-    };
-    loading: boolean;
-    error?: string | null;
-}
 const initialState: NotesState = {
     notes: {
         byId: {},
@@ -33,6 +24,9 @@ const noteSlice = createSlice({
             if (!state.notes.allIds.includes(note.id)) {
                 state.notes.allIds.push(note.id);
             }
+            if (state.notes.selectedNoteId !== note.id) {
+                state.notes.selectedNoteId = note.id;
+            }
         },
         updateNote: (state, action: PayloadAction<Note>) => {
             const note = action.payload;
@@ -52,8 +46,32 @@ const noteSlice = createSlice({
         },
         selectNote: (state, action: PayloadAction<string>) => {
             state.notes.selectedNoteId = action.payload;
-        }
+        },
+        removeAllNotesPermanently: (state) => {
+            state.notes.byId = {};
+            state.notes.allIds = [];
+            state.notes.selectedNoteId = null;
+        }, 
+        moveNoteToTrashBin: (state, action: PayloadAction<string>) => {
+            const id = action.payload;
+            if(state.notes.byId[id]) {
+                state.notes.byId[id].deleted = true;
+                state.notes.allIds = state.notes.allIds.filter(noteId => noteId !== id);
+            }
+        },
+        // searchNote: (state, action: PayloadAction<string>) => {
+        //     const searchValue = action.payload.toLowerCase();
+        //     const filteredNotes = Object.values(state.notes.byId).filter(note => {
+        //         return note.name.toLowerCase().includes(searchValue);
+        //         //  || note.content.toLowerCase().includes(searchValue)
+        //     })
+        //     state.notes.allIds = filteredNotes.map(note => note.id);
+        //     state.notes.byId = filteredNotes.reduce((acc, note) => {
+        //         acc[note.id] = note;
+        //         return acc;
+        //     }, {});
+        // }
     }
 })
-export const { addNote, updateNote, removeNote, selectNote, loadNotesFromLocalStorage } = noteSlice.actions
+export const { addNote, updateNote, removeNote, selectNote, loadNotesFromLocalStorage, removeAllNotesPermanently, moveNoteToTrashBin } = noteSlice.actions
 export default noteSlice.reducer;
