@@ -1,16 +1,12 @@
+import { loadNotesFromLocalStorage, addNote, moveNoteToTrashBin } from "@/slices/notesSlice";
+import { useState, useEffect, useRef } from "react"
+import { useAppSelector } from "@/lib/hooks";
+import { useAppDispatch } from "@/lib/hooks";
+import AddNewNote from "./AddNewNote";
+import AddNoteList from "./AddNoteList";
+import RemoveAllNotesBtn from "./RemoveAllNotesBtn";
 
-'use client';
-
-import React, { useState, useEffect, useRef } from "react";
-import {
-    loadNotesFromLocalStorage,
-    addNote,
-    selectNote,
-    moveNoteToTrashBin
-} from "@/slices/notesSlice";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-
-export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean, setSidebarOpen: (arg: boolean) => void }) {
+export default function SidebarMini({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean, setSidebarOpen: (arg: boolean) => void }) {
     const [value, setValue] = useState<string>('');
     const [searchValue, setSearchValue] = useState<string>('');
     const [newNoteName, setNewNoteName] = useState<boolean>(false);
@@ -25,6 +21,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
 
     const dispatch = useAppDispatch();
 
+    // Focus Out or On Blur Event to close dropdown menu or add note input while clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
@@ -39,6 +36,12 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
         return () => document.removeEventListener('mousedown', (e) => handleClickOutside(e));
     }, []);
 
+    /*
+    Following logic is required to preserve and keep notes on each page's refresh and not to lose them
+    between refreshes (1* and 2*)
+     */
+
+    // 1* Loading and parsing notes from local storage to save them in redux state
     useEffect(() => {
         if (!user?.uid) return;
 
@@ -53,12 +56,14 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
         setNotesLoadedFromStorage(true);
     }, [dispatch, user?.uid]);
 
+    // 2* Loading notes from redux state to local storage
     useEffect(() => {
         if (user?.uid && notesLoadedFromStorage) {
             localStorage.setItem(`${user.uid}-notes`, JSON.stringify(notes));
         }
     }, [notes, user?.uid, notesLoadedFromStorage]);
-
+ 
+    // Adding note to note list
     const handleAddNote = () => {
         if (!value.trim()) return;
 
@@ -81,26 +86,30 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
         setNewNoteName(false);
     };
 
+    // Filtering notes based on search query
     const filteredNotes = notes.allIds.filter(id =>
         notes.byId[id] &&
         !notes.byId[id].deleted &&
         notes.byId[id].name.toLowerCase().startsWith(searchValue.toLowerCase())
     );
 
+    // For more nice looking and readable code
     const handleDropdownAppearance = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
         setDropDownMenu(prev => (prev === id ? null : id));
     }
-    const handleDropdownRemoveBtn = (e: React.MouseEvent, id: string) => { 
-        e.stopPropagation(); 
-        dispatch(moveNoteToTrashBin(id)) 
+    const handleDropdownRemoveBtn = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        dispatch(moveNoteToTrashBin(id))
     }
 
     return (
+        // Layout
         <div
             className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
+            {/* Header and close sidebar button */}
             <div className="p-4 border-b flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Menu</h2>
                 <button
@@ -112,6 +121,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
             </div>
 
             <div className="p-4 space-y-4">
+
+                {/* Search Bar */}
                 <input
                     type="text"
                     placeholder="Search notes..."
@@ -120,79 +131,23 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: 
                     className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
                 />
 
+                { /* Add Note Button */}
                 <button
                     className="w-full text-left text-green-700 hover:underline"
                     onClick={() => setNewNoteName(true)}
                 >
                     + Add Note
                 </button>
+                
+                {/* Note Input Bar */}
+                {newNoteName && <AddNewNote value={value} setValue={setValue} inputRef={inputRef} handleAddNote={handleAddNote}/>}
+                
+                {/* Note List */}
+                <AddNoteList filteredNotes={filteredNotes} notes={notes} dropDownMenu={dropDownMenu} dropdownRef={dropdownRef} handleDropdownAppearance={handleDropdownAppearance} handleDropdownRemoveBtn={handleDropdownRemoveBtn}/>
 
-                {newNoteName && (
-                    <div className="flex items-center space-x-2">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={value}
-                            placeholder="Note name"
-                            onChange={(e) => setValue(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
-                            className="flex-1 px-2 py-1 border rounded"
-                        />
-                    </div>
-                )}
-
-                <ul className="space-y-2 pt-4 max-h-[300px] overflow-auto justify-content space-between">
-                    {filteredNotes.map(id => (
-                        <li
-                            key={id}
-                            className={`flex items-center justify-between px-3 py-2 border border-green-600 rounded cursor-pointer hover:bg-green-50 transition ${notes.selectedNoteId === id ? "bg-green-700 text-white" : ""
-                                }`}
-                            onClick={() => dispatch(selectNote(id))}
-                        >
-                            <span className="truncate">{notes.byId[id].name}</span>
-
-                            <button
-                                onClick={(e) => handleDropdownAppearance(e, id)}
-                                className="text-lg px-2 rounded hover:bg-green-100 focus:outline-none"
-                                title="More options"
-                            >
-                                &#8942;
-                            </button>
-
-                            {dropDownMenu === id && (
-                                <div
-                                    ref={dropdownRef}
-                                    role="menu"
-                                    aria-orientation="vertical"
-                                    aria-labelledby="menu-button"
-                                    className='absolute -right-40 z-10 mt-20 w-56 origin-top-left divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden'
-                                    onClick={(e) => handleDropdownRemoveBtn(e, id)}
-                                >
-                                    <ul className="text-sm text-gray-800">
-                                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">🗑️ Move to Trash</li>
-                                    </ul>
-                                </div>
-                            )}
-
-                        </li>
-                    ))}
-                </ul>
-
-                {filteredNotes.length > 0 && sidebarOpen && (
-                    <button
-                        onClick={() => {
-                            notes.allIds.forEach(id => {
-                                if (notes.byId[id] && !notes.byId[id].deleted) {
-                                    dispatch(moveNoteToTrashBin(id));
-                                }
-                            });
-                        }}
-                        className="mt-10 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition"
-                    >
-                        Remove All Notes
-                    </button>
-                )}
+                {/*Remove All Notes Button */}
+                <RemoveAllNotesBtn filteredNotes={filteredNotes} sidebarOpen={sidebarOpen} notes={notes}/>
             </div>
         </div>
-    );
+    )
 }

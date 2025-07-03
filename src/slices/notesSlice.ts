@@ -59,18 +59,6 @@ const noteSlice = createSlice({
                 state.notes.allIds = state.notes.allIds.filter(noteId => noteId !== id);
             }
         },
-        // searchNote: (state, action: PayloadAction<string>) => {
-        //     const searchValue = action.payload.toLowerCase();
-        //     const filteredNotes = Object.values(state.notes.byId).filter(note => {
-        //         return note.name.toLowerCase().includes(searchValue);
-        //         //  || note.content.toLowerCase().includes(searchValue)
-        //     })
-        //     state.notes.allIds = filteredNotes.map(note => note.id);
-        //     state.notes.byId = filteredNotes.reduce((acc, note) => {
-        //         acc[note.id] = note;
-        //         return acc;
-        //     }, {});
-        // }
     }
 })
 export const { addNote, updateNote, removeNote, selectNote, loadNotesFromLocalStorage, removeAllNotesPermanently, moveNoteToTrashBin } = noteSlice.actions

@@ -3,8 +3,9 @@
 import { useAppSelector } from "@/lib/hooks";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/notes/Header";
-import Sidebar from "@/components/notes/Sidebar";
+import Header from "@/components/notes/header/Header";
+// import Sidebar from "@/components/notes/Sidebar";
+import SidebarMini from "@/components/notes/sidebar/SidebarMini";
 
 export default function NotesPage() {
     const router = useRouter();
@@ -22,7 +23,8 @@ export default function NotesPage() {
     return (
         <div className="flex min-h-screen">
             {/* Sidebar */}
-            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+            <SidebarMini sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            {/* <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/> */}
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
                 <Header email={user.email} setSidebarOpen={setSidebarOpen} />
