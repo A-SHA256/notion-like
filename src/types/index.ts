@@ -1,10 +1,10 @@
 export interface Note {
-    id: string;
-    name: string;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-    deleted: boolean;
+  id: string;
+  name: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  deleted: boolean;
 }
 
 export interface FormData {
@@ -18,12 +18,14 @@ export interface AuthState {
   isAuthenticated: boolean;
   isInitialized: boolean;
 }
+
+export interface Notes {
+  byId: Record<string, Note>;
+  allIds: string[];
+  selectedNoteId: string | null;
+}
 export interface NotesState {
-    notes: {
-        byId: Record<string, Note>;
-        allIds: string[];
-        selectedNoteId: string | null;
-    };
-    loading: boolean;
-    error?: string | null;
+  notes: Notes
+  loading: boolean;
+  error?: string | null;
 }
