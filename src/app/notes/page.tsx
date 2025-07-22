@@ -4,8 +4,9 @@ import { useAppSelector } from "@/lib/hooks";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/notes/header/Header";
-// import Sidebar from "@/components/notes/Sidebar";
 import SidebarMini from "@/components/notes/sidebar/SidebarMini";
+// import NoteEditor from "@/components/notes/NoteEditor";
+import Edi2or from "@/components/notes/Edi2or";
 
 export default function NotesPage() {
     const router = useRouter();
@@ -29,9 +30,11 @@ export default function NotesPage() {
             <div className="flex-1 flex flex-col">
                 <Header email={user.email} setSidebarOpen={setSidebarOpen} />
 
-                <main className="p-6">
+                <main className="p-6 flex justify-center items-center flex-col">
                     <h1 className="text-2xl font-semibold mb-4">Welcome to Notes</h1>
                     {/* Add main content here */}
+                    {/* <NoteEditor /> */}
+                    <Edi2or />
                 </main>
             </div>
         </div>
